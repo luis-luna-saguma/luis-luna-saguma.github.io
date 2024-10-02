@@ -1,17 +1,102 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>WebGL Demo</title>
-    <link rel="stylesheet" href="../webgl.css" type="text/css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"
-      integrity="sha512-zhHQR0/H5SEBL3Wn6yYSaTTZej12z0hVZKOv3TwCUXT1z5qeqGcXJLLrbERYRScEDDpYIJhPC1fk31gqR783iQ=="
-      crossorigin="anonymous" defer>
-    </script>
-    <script src="webgl-demo.js" defer></script>
-  </head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!--CALCULAR FISICA-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Velocidad, Distancia y Tiempo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+            font-size: 50px;
+        }
+        .container {
+            margin-bottom: 10px;
+        }
+        label {
+            display: inline-block;
+            width: 300px;
+        }
+        input {
+            width: 300px;
+            font-size: 50px;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        button {
+            padding: 20px 50px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
 
-  <body>
-    <canvas id="glcanvas" width="640" height="480"></canvas>
-  </body>
+    <div class="container" id="divA">
+        <label for="velocidad">Velocidad:</label>
+        <input type="number" id="velocidad" placeholder="Ingresa velocidad">
+    </div>
+
+    <div class="container" id="divB">
+        <label for="distancia">Distancia:</label>
+        <input type="number" id="distancia" placeholder="Ingresa distancia">
+    </div>
+
+    <div class="container" id="divC">
+        <label for="tiempo">Tiempo:</label>
+        <input type="number" id="tiempo" placeholder="Ingresa tiempo">
+    </div>
+
+    <div class="container" id="divD">
+        <button onclick="calcular()">Calcular</button>
+    </div>
+
+    <div class="container" id="divE">
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function calcular() {
+            const velocidad = parseFloat(document.getElementById('velocidad').value);
+            const distancia = parseFloat(document.getElementById('distancia').value);
+            const tiempo = parseFloat(document.getElementById('tiempo').value);
+            const resultado = document.getElementById('result');
+
+            if (!velocidad && !distancia && !tiempo) {
+                resultado.textContent = "No se ingresaron datos";
+                return;
+            }
+
+            if ((velocidad && distancia && tiempo) || 
+                (!velocidad && !distancia && tiempo) || 
+                (velocidad && !distancia && !tiempo)) {
+                resultado.textContent = "Faltan datos para realizar los cálculos";
+                return;
+            }
+
+            if (velocidad && distancia && !tiempo) {
+                const tiempoCalculado = distancia / velocidad;
+                resultado.textContent = `El tiempo es de ${tiempoCalculado.toFixed(2)} segundos`;
+            } else if (velocidad && tiempo && !distancia) {
+                const distanciaCalculada = velocidad * tiempo;
+                resultado.textContent = `La distancia es de ${distanciaCalculada.toFixed(2)} metros`;
+            } else if (distancia && tiempo && !velocidad) {
+                const velocidadCalculada = distancia / tiempo;
+                resultado.textContent = `La velocidad es de ${velocidadCalculada.toFixed(2)} metros x segundo`;
+            }
+        }
+    </script>
+
+</body>
 </html>
