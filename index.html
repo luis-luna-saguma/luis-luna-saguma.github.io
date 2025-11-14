@@ -1,102 +1,610 @@
 <!DOCTYPE html>
+<!--version LuistechIDE B14-->
 <html lang="es">
 <head>
-    <!--CALCULAR FISICA-->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cálculo de Velocidad, Distancia y Tiempo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 50px;
-            font-size: 50px;
-        }
-        .container {
-            margin-bottom: 10px;
-        }
-        label {
-            display: inline-block;
-            width: 300px;
-        }
-        input {
-            width: 300px;
-            font-size: 50px;
-        }
-        #result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        button {
-            padding: 20px 50px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LuisTech IDE - v.0.14</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #1e1e1e;
+      color: #cccccc;
+      overflow: hidden;
+    }
+
+    #container {
+      display: flex;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    /* Barra de Herramientas Superior */
+    #toolbar {
+      background: #252526;
+      border-bottom: 2px solid #333;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #toolbar h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-right: 15px;
+    }
+
+    .toolbar-btn {
+      padding: 7px 14px;
+      background: #0e639c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .toolbar-btn:hover {
+      background: #1177bb;
+      transform: translateY(-1px);
+    }
+
+    .toolbar-btn:active {
+      transform: translateY(0);
+    }
+
+    .toolbar-btn.success {
+      background: #0e7d3c;
+    }
+
+    .toolbar-btn.success:hover {
+      background: #10a051;
+    }
+
+    .toolbar-btn.danger {
+      background: #d13438;
+    }
+
+    .toolbar-btn.danger:hover {
+      background: #e63c41;
+    }
+
+    .toolbar-btn.secondary {
+      background: #5a5a5a;
+    }
+
+    .toolbar-btn.secondary:hover {
+      background: #6e6e6e;
+    }
+
+    /* Input oculto para abrir archivos */
+    #file-input {
+      display: none;
+    }
+
+    /* Paneles */
+    #main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    #editor-panel {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      background: #1e1e1e;
+      border-right: 1px solid #333;
+    }
+
+    #editor-header {
+      padding: 12px 16px;
+      background: #2d2d30;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #editor-header h3 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    #project-name {
+      font-size: 12px;
+      color: #4fc1ff;
+      font-style: italic;
+    }
+
+    #editor-wrapper {
+      flex: 1;
+      overflow: auto;
+    }
+
+    #preview-panel {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      background: #1e1e1e;
+    }
+
+    #preview-header {
+      padding: 12px 16px;
+      background: #2d2d30;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #preview-header h3 {
+      font-size: 13px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+
+    #preview-content {
+      flex: 1;
+      background: #ffffff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #preview-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    #run-button {
+      padding: 8px 16px;
+      background: #0e639c;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    #run-button:hover {
+      background: #1177bb;
+    }
+
+    .cm-editor {
+      height: 100%;
+      font-size: 14px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    }
+
+    .cm-scroller {
+      overflow: auto;
+    }
+
+    /* Notificación */
+    .notification {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: #0e639c;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease-out;
+      z-index: 1000;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .notification.success {
+      background: #0e7d3c;
+    }
+
+    .notification.error {
+      background: #d13438;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #main-content {
+        flex-direction: column;
+      }
+      
+      #editor-panel, #preview-panel {
+        width: 100%;
+        height: 50vh;
+      }
+    }
+  </style>
 </head>
 <body>
-
-    <div class="container" id="divA">
-        <label for="velocidad">Velocidad:</label>
-        <input type="number" id="velocidad" placeholder="Ingresa velocidad">
+  <div id="container">
+    <!-- Barra de Herramientas -->
+    <div id="toolbar">
+      <h2> LuisTech IDE -v.014</h2>
+      
+      <button class="toolbar-btn success" id="save-btn">
+        💾 Guardar
+      </button>
+      
+      <button class="toolbar-btn" id="open-btn">
+        📂 Abrir
+      </button>
+      
+      <button class="toolbar-btn secondary" id="new-btn">
+        📄 Nuevo
+      </button>
+      
+      <button class="toolbar-btn secondary" id="copy-btn">
+        📋 Copiar Código
+      </button>
+      
+      <button class="toolbar-btn danger" id="clear-autosave-btn">
+        🗑️ Limpiar Auto-guardado
+      </button>
+      
+      <input type="file" id="file-input" accept=".html,.htm">
     </div>
 
-    <div class="container" id="divB">
-        <label for="distancia">Distancia:</label>
-        <input type="number" id="distancia" placeholder="Ingresa distancia">
+    <!-- Contenido Principal -->
+    <div id="main-content">
+      <!-- Panel Editor -->
+      <div id="editor-panel">
+        <div id="editor-header">
+          <h3>📝 Editor</h3>
+          <span id="project-name">sin-nombre.html</span>
+        </div>
+        <div id="editor-wrapper"></div>
+      </div>
+
+      <!-- Panel Preview -->
+      <div id="preview-panel">
+        <div id="preview-header">
+          <h3>🖥️ Vista Previa</h3>
+          <button id="run-button">
+            <span>▶</span>
+            <span>Ejecutar</span>
+          </button>
+        </div>
+        <div id="preview-content">
+          <iframe id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="container" id="divC">
-        <label for="tiempo">Tiempo:</label>
-        <input type="number" id="tiempo" placeholder="Ingresa tiempo">
-    </div>
+  <script type="importmap">
+    {
+      "imports": {
+        "codemirror": "https://esm.sh/codemirror@6.0.1",
+        "@codemirror/state": "https://esm.sh/@codemirror/state@6",
+        "@codemirror/view": "https://esm.sh/@codemirror/view@6",
+        "@codemirror/commands": "https://esm.sh/@codemirror/commands@6",
+        "@codemirror/language": "https://esm.sh/@codemirror/language@6",
+        "@codemirror/lang-html": "https://esm.sh/@codemirror/lang-html@6",
+        "@lezer/highlight": "https://esm.sh/@lezer/highlight@1"
+      }
+    }
+  </script>
 
-    <div class="container" id="divD">
-        <button onclick="calcular()">Calcular</button>
-    </div>
+  <script type="module">
+    import { EditorView, basicSetup } from "codemirror";
+    import { EditorState } from "@codemirror/state";
+    import { html } from "@codemirror/lang-html";
+    import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
+    import { tags } from "@lezer/highlight";
 
-    <div class="container" id="divE">
-        <p id="result"></p>
-    </div>
+    // ==================== CÓDIGO INICIAL ====================
+    const codigoInicial = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Mi Proyecto - LuisTech IDE</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+      padding: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      text-align: center;
+      animation: fadeIn 0.8s ease-in;
+    }
+    
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    p {
+      font-size: 20px;
+      opacity: 0.95;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 ¡Bienvenido a LuisTech IDE!</h1>
+    <p>Empieza a crear tus proyectos increíbles aquí 🎨</p>
+  </div>
+</body>
+</html>`;
 
-    <script>
-        function calcular() {
-            const velocidad = parseFloat(document.getElementById('velocidad').value);
-            const distancia = parseFloat(document.getElementById('distancia').value);
-            const tiempo = parseFloat(document.getElementById('tiempo').value);
-            const resultado = document.getElementById('result');
+    // ==================== VARIABLES GLOBALES ====================
+    let currentFileName = "sin-nombre.html";
+    const AUTOSAVE_KEY = "luistech-ide-autosave";
+    const AUTOSAVE_NAME_KEY = "luistech-ide-autosave-name";
 
-            if (!velocidad && !distancia && !tiempo) {
-                resultado.textContent = "No se ingresaron datos";
-                return;
+    // ==================== TEMA Y SINTAXIS ====================
+    const miTemaCustom = EditorView.theme({
+      "&": { height: "100%", fontSize: "14px", backgroundColor: "#1e1e1e" },
+      ".cm-content": { caretColor: "#ffffff", color: "#d4d4d4" },
+      ".cm-scroller": { overflow: "auto", fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace" },
+      "&.cm-focused": { outline: "none" },
+      ".cm-gutters": { backgroundColor: "#1e1e1e", color: "#858585", borderRight: "1px solid #333", fontWeight: "bold" },
+      ".cm-activeLineGutter": { backgroundColor: "#2a2a2a", color: "#ffffff" },
+      ".cm-activeLine": { backgroundColor: "#2a2a2a" },
+      ".cm-cursor": { borderLeftColor: "#ffffff" }
+    });
+
+    const misSintaxisColores = syntaxHighlighting(HighlightStyle.define([
+      { tag: tags.tagName, color: "#ff5370", fontWeight: "bold" },
+      { tag: tags.attributeName, color: "#9cdcfe" },
+      { tag: tags.attributeValue, color: "#ce9178" },
+      { tag: tags.string, color: "#ce9178" },
+      { tag: tags.comment, color: "#6a9955" },
+      { tag: tags.keyword, color: "#c586c0" },
+      { tag: tags.propertyName, color: "#9cdcfe" },
+      { tag: tags.variableName, color: "#4fc1ff" },
+      { tag: tags.operator, color: "#d4d4d4" },
+      { tag: tags.bracket, color: "#ffd700" },
+      { tag: tags.number, color: "#b5cea8" },
+      { tag: tags.bool, color: "#569cd6" }
+    ]));
+
+    // ==================== CARGAR DESDE AUTO-GUARDADO ====================
+    let initialCode = codigoInicial;
+    const savedCode = localStorage.getItem(AUTOSAVE_KEY);
+    const savedName = localStorage.getItem(AUTOSAVE_NAME_KEY);
+    
+    if (savedCode) {
+      initialCode = savedCode;
+      currentFileName = savedName || "recuperado.html";
+      console.log("✅ Auto-guardado recuperado");
+    }
+
+    // ==================== CREAR EDITOR ====================
+    const editor = new EditorView({
+      state: EditorState.create({
+        doc: initialCode,
+        extensions: [
+          basicSetup,
+          html(),
+          EditorView.lineWrapping,
+          EditorState.readOnly.of(false),
+          EditorView.editable.of(true),
+          miTemaCustom,
+          misSintaxisColores,
+          // Auto-guardar cada 5 segundos
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              setTimeout(() => {
+                const code = editor.state.doc.toString();
+                localStorage.setItem(AUTOSAVE_KEY, code);
+                localStorage.setItem(AUTOSAVE_NAME_KEY, currentFileName);
+              }, 100);
             }
+          })
+        ]
+      }),
+      parent: document.getElementById('editor-wrapper')
+    });
 
-            if ((velocidad && distancia && tiempo) || 
-                (!velocidad && !distancia && tiempo) || 
-                (velocidad && !distancia && !tiempo)) {
-                resultado.textContent = "Faltan datos para realizar los cálculos";
-                return;
-            }
+    // Actualizar nombre del proyecto en UI
+    function updateProjectName() {
+      document.getElementById('project-name').textContent = currentFileName;
+    }
+    updateProjectName();
 
-            if (velocidad && distancia && !tiempo) {
-                const tiempoCalculado = distancia / velocidad;
-                resultado.textContent = `El tiempo es de ${tiempoCalculado.toFixed(2)} segundos`;
-            } else if (velocidad && tiempo && !distancia) {
-                const distanciaCalculada = velocidad * tiempo;
-                resultado.textContent = `La distancia es de ${distanciaCalculada.toFixed(2)} metros`;
-            } else if (distancia && tiempo && !velocidad) {
-                const velocidadCalculada = distancia / tiempo;
-                resultado.textContent = `La velocidad es de ${velocidadCalculada.toFixed(2)} metros x segundo`;
-            }
-        }
-    </script>
+    // ==================== FUNCIONES DE NOTIFICACIÓN ====================
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
 
+    // ==================== BOTÓN EJECUTAR ====================
+    const runButton = document.getElementById('run-button');
+    const previewIframe = document.getElementById('preview-iframe');
+
+    runButton.addEventListener('click', () => {
+      const codigo = editor.state.doc.toString();
+      previewIframe.setAttribute('srcdoc', codigo);
+      console.log('✅ Código ejecutado');
+    });
+
+    // ==================== GUARDAR ARCHIVO ====================
+    document.getElementById('save-btn').addEventListener('click', () => {
+      let filename = prompt('Nombre del archivo (sin extensión):', currentFileName.replace('.html', ''));
+      
+      if (filename === null) return; // Cancelado
+      
+      if (!filename.trim()) {
+        filename = 'mi-proyecto';
+      }
+      
+      filename = filename.trim() + '.html';
+      currentFileName = filename;
+      updateProjectName();
+      
+      const codigo = editor.state.doc.toString();
+      const blob = new Blob([codigo], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showNotification(`💾 Guardado: ${filename}`, 'success');
+    });
+
+    // ==================== ABRIR ARCHIVO ====================
+    const fileInput = document.getElementById('file-input');
+    
+    document.getElementById('open-btn').addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target.result;
+        editor.dispatch({
+          changes: {
+            from: 0,
+            to: editor.state.doc.length,
+            insert: content
+          }
+        });
+        currentFileName = file.name;
+        updateProjectName();
+        showNotification(`📂 Abierto: ${file.name}`, 'success');
+        
+        // Auto-ejecutar después de abrir
+        setTimeout(() => runButton.click(), 200);
+      };
+      reader.readAsText(file);
+      
+      // Limpiar input para permitir abrir el mismo archivo otra vez
+      fileInput.value = '';
+    });
+
+    // ==================== NUEVO PROYECTO ====================
+    document.getElementById('new-btn').addEventListener('click', () => {
+      if (confirm('¿Crear nuevo proyecto? Se perderá el código actual si no lo guardaste.')) {
+        editor.dispatch({
+          changes: {
+            from: 0,
+            to: editor.state.doc.length,
+            insert: codigoInicial
+          }
+        });
+        currentFileName = "sin-nombre.html";
+        updateProjectName();
+        showNotification('📄 Nuevo proyecto creado', 'success');
+        runButton.click();
+      }
+    });
+
+    // ==================== COPIAR CÓDIGO ====================
+    document.getElementById('copy-btn').addEventListener('click', async () => {
+      const codigo = editor.state.doc.toString();
+      try {
+        await navigator.clipboard.writeText(codigo);
+        showNotification('📋 Código copiado al portapapeles', 'success');
+      } catch (err) {
+        showNotification('❌ Error al copiar', 'error');
+      }
+    });
+
+    // ==================== LIMPIAR AUTO-GUARDADO ====================
+    document.getElementById('clear-autosave-btn').addEventListener('click', () => {
+      if (confirm('¿Eliminar el auto-guardado? Esta acción no se puede deshacer.')) {
+        localStorage.removeItem(AUTOSAVE_KEY);
+        localStorage.removeItem(AUTOSAVE_NAME_KEY);
+        showNotification('🗑️ Auto-guardado eliminado', 'success');
+      }
+    });
+
+    // ==================== ATAJOS DE TECLADO ====================
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Enter: Ejecutar
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runButton.click();
+      }
+      
+      // Ctrl+S: Guardar
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        document.getElementById('save-btn').click();
+      }
+      
+      // Ctrl+O: Abrir
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault();
+        document.getElementById('open-btn').click();
+      }
+    });
+
+    // ==================== AUTO-EJECUTAR AL CARGAR ====================
+    setTimeout(() => {
+      editor.focus();
+      runButton.click();
+    }, 100);
+
+    console.log('✅ LuisTech IDE B13 cargado');
+    console.log('💾 Auto-guardado: ACTIVO');
+    console.log('⌨️  Atajos: Ctrl+S (guardar), Ctrl+O (abrir), Ctrl+Enter (ejecutar)');
+  </script>
 </body>
 </html>
