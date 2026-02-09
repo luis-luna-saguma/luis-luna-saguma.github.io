@@ -1,610 +1,1571 @@
 <!DOCTYPE html>
-<!--version LuistechIDE B14-->
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LuisTech IDE - v.0.14</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #1e1e1e;
-      color: #cccccc;
-      overflow: hidden;
-    }
-
-    #container {
-      display: flex;
-      height: 100vh;
-      flex-direction: column;
-    }
-
-    /* Barra de Herramientas Superior */
-    #toolbar {
-      background: #252526;
-      border-bottom: 2px solid #333;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    #toolbar h2 {
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      margin-right: 15px;
-    }
-
-    .toolbar-btn {
-      padding: 7px 14px;
-      background: #0e639c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.2s;
-    }
-
-    .toolbar-btn:hover {
-      background: #1177bb;
-      transform: translateY(-1px);
-    }
-
-    .toolbar-btn:active {
-      transform: translateY(0);
-    }
-
-    .toolbar-btn.success {
-      background: #0e7d3c;
-    }
-
-    .toolbar-btn.success:hover {
-      background: #10a051;
-    }
-
-    .toolbar-btn.danger {
-      background: #d13438;
-    }
-
-    .toolbar-btn.danger:hover {
-      background: #e63c41;
-    }
-
-    .toolbar-btn.secondary {
-      background: #5a5a5a;
-    }
-
-    .toolbar-btn.secondary:hover {
-      background: #6e6e6e;
-    }
-
-    /* Input oculto para abrir archivos */
-    #file-input {
-      display: none;
-    }
-
-    /* Paneles */
-    #main-content {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    #editor-panel {
-      width: 50%;
-      display: flex;
-      flex-direction: column;
-      background: #1e1e1e;
-      border-right: 1px solid #333;
-    }
-
-    #editor-header {
-      padding: 12px 16px;
-      background: #2d2d30;
-      border-bottom: 1px solid #333;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    #editor-header h3 {
-      font-size: 13px;
-      font-weight: 500;
-      color: #ffffff;
-    }
-
-    #project-name {
-      font-size: 12px;
-      color: #4fc1ff;
-      font-style: italic;
-    }
-
-    #editor-wrapper {
-      flex: 1;
-      overflow: auto;
-    }
-
-    #preview-panel {
-      width: 50%;
-      display: flex;
-      flex-direction: column;
-      background: #1e1e1e;
-    }
-
-    #preview-header {
-      padding: 12px 16px;
-      background: #2d2d30;
-      border-bottom: 1px solid #333;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    #preview-header h3 {
-      font-size: 13px;
-      font-weight: 500;
-      color: #ffffff;
-    }
-
-    #preview-content {
-      flex: 1;
-      background: #ffffff;
-      overflow: hidden;
-      position: relative;
-    }
-
-    #preview-iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: white;
-    }
-
-    #run-button {
-      padding: 8px 16px;
-      background: #0e639c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-
-    #run-button:hover {
-      background: #1177bb;
-    }
-
-    .cm-editor {
-      height: 100%;
-      font-size: 14px;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    }
-
-    .cm-scroller {
-      overflow: auto;
-    }
-
-    /* Notificación */
-    .notification {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      background: #0e639c;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      animation: slideIn 0.3s ease-out;
-      z-index: 1000;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .notification.success {
-      background: #0e7d3c;
-    }
-
-    .notification.error {
-      background: #d13438;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      #main-content {
-        flex-direction: column;
-      }
-      
-      #editor-panel, #preview-panel {
-        width: 100%;
-        height: 50vh;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="container">
-    <!-- Barra de Herramientas -->
-    <div id="toolbar">
-      <h2> LuisTech IDE -v.014</h2>
-      
-      <button class="toolbar-btn success" id="save-btn">
-        💾 Guardar
-      </button>
-      
-      <button class="toolbar-btn" id="open-btn">
-        📂 Abrir
-      </button>
-      
-      <button class="toolbar-btn secondary" id="new-btn">
-        📄 Nuevo
-      </button>
-      
-      <button class="toolbar-btn secondary" id="copy-btn">
-        📋 Copiar Código
-      </button>
-      
-      <button class="toolbar-btn danger" id="clear-autosave-btn">
-        🗑️ Limpiar Auto-guardado
-      </button>
-      
-      <input type="file" id="file-input" accept=".html,.htm">
-    </div>
-
-    <!-- Contenido Principal -->
-    <div id="main-content">
-      <!-- Panel Editor -->
-      <div id="editor-panel">
-        <div id="editor-header">
-          <h3>📝 Editor</h3>
-          <span id="project-name">sin-nombre.html</span>
-        </div>
-        <div id="editor-wrapper"></div>
-      </div>
-
-      <!-- Panel Preview -->
-      <div id="preview-panel">
-        <div id="preview-header">
-          <h3>🖥️ Vista Previa</h3>
-          <button id="run-button">
-            <span>▶</span>
-            <span>Ejecutar</span>
-          </button>
-        </div>
-        <div id="preview-content">
-          <iframe id="preview-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "codemirror": "https://esm.sh/codemirror@6.0.1",
-        "@codemirror/state": "https://esm.sh/@codemirror/state@6",
-        "@codemirror/view": "https://esm.sh/@codemirror/view@6",
-        "@codemirror/commands": "https://esm.sh/@codemirror/commands@6",
-        "@codemirror/language": "https://esm.sh/@codemirror/language@6",
-        "@codemirror/lang-html": "https://esm.sh/@codemirror/lang-html@6",
-        "@lezer/highlight": "https://esm.sh/@lezer/highlight@1"
-      }
-    }
-  </script>
-
-  <script type="module">
-    import { EditorView, basicSetup } from "codemirror";
-    import { EditorState } from "@codemirror/state";
-    import { html } from "@codemirror/lang-html";
-    import { syntaxHighlighting, HighlightStyle } from "@codemirror/language";
-    import { tags } from "@lezer/highlight";
-
-    // ==================== CÓDIGO INICIAL ====================
-    const codigoInicial = `<!DOCTYPE html>
-<html>
-<head>
-  <title>Mi Proyecto - LuisTech IDE</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      min-height: 100vh;
-      padding: 40px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .container {
-      text-align: center;
-      animation: fadeIn 0.8s ease-in;
-    }
-    
-    h1 {
-      font-size: 48px;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-    }
-    
-    p {
-      font-size: 20px;
-      opacity: 0.95;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>🚀 ¡Bienvenido a LuisTech IDE!</h1>
-    <p>Empieza a crear tus proyectos increíbles aquí 🎨</p>
-  </div>
-</body>
-</html>`;
-
-    // ==================== VARIABLES GLOBALES ====================
-    let currentFileName = "sin-nombre.html";
-    const AUTOSAVE_KEY = "luistech-ide-autosave";
-    const AUTOSAVE_NAME_KEY = "luistech-ide-autosave-name";
-
-    // ==================== TEMA Y SINTAXIS ====================
-    const miTemaCustom = EditorView.theme({
-      "&": { height: "100%", fontSize: "14px", backgroundColor: "#1e1e1e" },
-      ".cm-content": { caretColor: "#ffffff", color: "#d4d4d4" },
-      ".cm-scroller": { overflow: "auto", fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace" },
-      "&.cm-focused": { outline: "none" },
-      ".cm-gutters": { backgroundColor: "#1e1e1e", color: "#858585", borderRight: "1px solid #333", fontWeight: "bold" },
-      ".cm-activeLineGutter": { backgroundColor: "#2a2a2a", color: "#ffffff" },
-      ".cm-activeLine": { backgroundColor: "#2a2a2a" },
-      ".cm-cursor": { borderLeftColor: "#ffffff" }
-    });
-
-    const misSintaxisColores = syntaxHighlighting(HighlightStyle.define([
-      { tag: tags.tagName, color: "#ff5370", fontWeight: "bold" },
-      { tag: tags.attributeName, color: "#9cdcfe" },
-      { tag: tags.attributeValue, color: "#ce9178" },
-      { tag: tags.string, color: "#ce9178" },
-      { tag: tags.comment, color: "#6a9955" },
-      { tag: tags.keyword, color: "#c586c0" },
-      { tag: tags.propertyName, color: "#9cdcfe" },
-      { tag: tags.variableName, color: "#4fc1ff" },
-      { tag: tags.operator, color: "#d4d4d4" },
-      { tag: tags.bracket, color: "#ffd700" },
-      { tag: tags.number, color: "#b5cea8" },
-      { tag: tags.bool, color: "#569cd6" }
-    ]));
-
-    // ==================== CARGAR DESDE AUTO-GUARDADO ====================
-    let initialCode = codigoInicial;
-    const savedCode = localStorage.getItem(AUTOSAVE_KEY);
-    const savedName = localStorage.getItem(AUTOSAVE_NAME_KEY);
-    
-    if (savedCode) {
-      initialCode = savedCode;
-      currentFileName = savedName || "recuperado.html";
-      console.log("✅ Auto-guardado recuperado");
-    }
-
-    // ==================== CREAR EDITOR ====================
-    const editor = new EditorView({
-      state: EditorState.create({
-        doc: initialCode,
-        extensions: [
-          basicSetup,
-          html(),
-          EditorView.lineWrapping,
-          EditorState.readOnly.of(false),
-          EditorView.editable.of(true),
-          miTemaCustom,
-          misSintaxisColores,
-          // Auto-guardar cada 5 segundos
-          EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              setTimeout(() => {
-                const code = editor.state.doc.toString();
-                localStorage.setItem(AUTOSAVE_KEY, code);
-                localStorage.setItem(AUTOSAVE_NAME_KEY, currentFileName);
-              }, 100);
-            }
-          })
-        ]
-      }),
-      parent: document.getElementById('editor-wrapper')
-    });
-
-    // Actualizar nombre del proyecto en UI
-    function updateProjectName() {
-      document.getElementById('project-name').textContent = currentFileName;
-    }
-    updateProjectName();
-
-    // ==================== FUNCIONES DE NOTIFICACIÓN ====================
-    function showNotification(message, type = 'success') {
-      const notification = document.createElement('div');
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => {
-        notification.remove();
-      }, 3000);
-    }
-
-    // ==================== BOTÓN EJECUTAR ====================
-    const runButton = document.getElementById('run-button');
-    const previewIframe = document.getElementById('preview-iframe');
-
-    runButton.addEventListener('click', () => {
-      const codigo = editor.state.doc.toString();
-      previewIframe.setAttribute('srcdoc', codigo);
-      console.log('✅ Código ejecutado');
-    });
-
-    // ==================== GUARDAR ARCHIVO ====================
-    document.getElementById('save-btn').addEventListener('click', () => {
-      let filename = prompt('Nombre del archivo (sin extensión):', currentFileName.replace('.html', ''));
-      
-      if (filename === null) return; // Cancelado
-      
-      if (!filename.trim()) {
-        filename = 'mi-proyecto';
-      }
-      
-      filename = filename.trim() + '.html';
-      currentFileName = filename;
-      updateProjectName();
-      
-      const codigo = editor.state.doc.toString();
-      const blob = new Blob([codigo], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      showNotification(`💾 Guardado: ${filename}`, 'success');
-    });
-
-    // ==================== ABRIR ARCHIVO ====================
-    const fileInput = document.getElementById('file-input');
-    
-    document.getElementById('open-btn').addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target.result;
-        editor.dispatch({
-          changes: {
-            from: 0,
-            to: editor.state.doc.length,
-            insert: content
-          }
-        });
-        currentFileName = file.name;
-        updateProjectName();
-        showNotification(`📂 Abierto: ${file.name}`, 'success');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>EJERCITO CELULAR - Target Practice</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            touch-action: pan-y pan-x;
+        }
         
-        // Auto-ejecutar después de abrir
-        setTimeout(() => runButton.click(), 200);
-      };
-      reader.readAsText(file);
-      
-      // Limpiar input para permitir abrir el mismo archivo otra vez
-      fileInput.value = '';
-    });
+        /* HUD - PUNTOS Y TIEMPO */
+        #hud {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            width: 80%;
+            max-width: 400px;
+            height: 8%;
+            min-height: 50px;
+            max-height: 80px;
+            padding: 0 3%;
+            border-radius: 10px;
+            z-index: 150;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid #FFD700;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;  /* Apila score y timer verticalmente */
+            align-items: center;
+            justify-content: center;
+            gap: 2px;  /* Pequeño espacio entre score y timer */
+        }
 
-    // ==================== NUEVO PROYECTO ====================
-    document.getElementById('new-btn').addEventListener('click', () => {
-      if (confirm('¿Crear nuevo proyecto? Se perderá el código actual si no lo guardaste.')) {
-        editor.dispatch({
-          changes: {
-            from: 0,
-            to: editor.state.doc.length,
-            insert: codigoInicial
-          }
+        #score {
+            color: #FFD700;
+            font-size: 1.2em;  /* 1.2 veces el tamaño base (16px) = 19.2px */
+            line-height: 1;
+        }
+
+        #timer {
+            color: #FF4444;
+            font-size: 1em;  /* Mismo tamaño que el base (16px) */
+            line-height: 1;
+            margin-top: 0;  /* Quitamos el margin, usamos gap en el padre */
+        }
+        
+        /* DEBUG INFO -(debug): nombre real*/
+        #debug1 {
+            position: fixed;
+            top: 5px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: lime;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 200;
+            border-radius: 5px;
+            max-width: 200px;
+        }
+        
+        /* CROSSHAIR */
+        #crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            pointer-events: none;
+            z-index: 50;
+        }
+        #crosshair::before,
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            background: white;
+            box-shadow: 0 0 3px rgba(0,0,0,0.8);
+        }
+        #crosshair::before {
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            transform: translateY(-50%);
+        }
+        #crosshair::after {
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            transform: translateX(-50%);
+        }
+        
+        /* FULLSCREEN BUTTON */
+        #fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 2px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 1000;
+            font-weight: bold;
+        }
+        #fullscreen-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        
+        /* JOYSTICK CONTAINER */
+        .joystick-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 18vw;  /* 18% del ancho de la pantalla */
+            height: 18vw; /* Igual que width para mantenerlo circular */
+            min-width: 100px;   /* Mínimo en pantallas muy pequeñas */
+            min-height: 100px;
+            max-width: 160px;   /* Máximo en tablets/pantallas grandes */
+            max-height: 160px;
+            z-index: 100;
+            touch-action: none;
+        }
+
+        .joystick-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(100, 100, 100, 0.4);
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .joystick-stick {
+            position: absolute;
+            width: 43%;  /* 43% del tamaño del container */
+            height: 43%;
+            background: rgba(255, 255, 255, 0.8);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.1s ease-out;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .joystick-stick.active {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .joystick-deadzone {
+            position: absolute;
+            width: 20%;  /* 20% del tamaño del container */
+            height: 20%;
+            border: 1px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        
+        /* ACTION BUTTONS */
+        .action-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        .action-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.6);  /* Borde también más transparente */
+            font-weight: bold;
+            font-size: 14px;
+            color: rgb(255, 255, 255);
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            touch-action: none;
+        }
+
+        #btn-jump {
+            background: rgba(0, 255, 0, 0.2);  /* Verde con 30% de opacidad */
+        }
+
+        #btn-shoot {
+            background: rgba(0, 255, 0, 0.2);  /* Naranja con 30% de opacidad */
+            position: fixed;
+            top: 120px;
+            left: 50px;
+            z-index: 150;
+        }
+
+        #btn-platform {
+            background: rgba(128, 0, 128, 0.2);  /* Morado con 30% de opacidad */
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+        
+        /* INSTRUCTIONS */
+        #instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(1, 46, 83, 0.96);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 999;
+            max-width: 90%;
+        }
+        #instructions h2 {
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+        #instructions p {
+            margin: 10px 0;
+        }
+        #instructions button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        #instructions button:hover {
+            background: #1eb2ec;
+        }
+        
+        /* GAME OVER SCREEN */
+        #gameover {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 999;
+            border: 5px solid #FFD700;
+        }
+        #gameover h1 {
+            color: #FFD700;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        #gameover h2 {
+            color: #4CAF50;
+            font-size: 36px;
+            margin: 20px 0;
+        }
+        #gameover button {
+            margin-top: 20px;
+            padding: 15px 40px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #gameover button:hover {
+            background: #45a049;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="crosshair"></div>
+    
+    <!-- HUD -->
+    <div id="hud">
+        <div>PUNTOS: <span id="score">0</span></div>
+        <div id="timer">TIEMPO: 180s</div>
+    </div>
+    
+    <div id="debug"></div>
+    
+    <button id="fullscreen-btn">Pantalla Completa</button>
+    
+    <div class="joystick-container">
+        <div class="joystick-base"></div>
+        <div class="joystick-deadzone"></div>
+        <div class="joystick-stick" id="joystick-stick"></div>
+    </div>
+    
+    <div class="action-controls">
+        <button class="action-btn" id="btn-jump">SALTAR</button>
+        <button class="action-btn" id="btn-shoot">DISPARAR</button>
+        <button class="action-btn" id="btn-platform">PLATAFORMA</button>
+    </div>
+    
+    <div id="instructions">
+        <h2>BIOQUIMCA DEL CUERPO HUMANO</h2>
+        <p><strong>OBJETIVO:</strong> Destruye todos los objetivos</p>
+        <p><strong>TIEMPO:</strong> 3 minutos</p>
+        <p><strong>PC y Movil:</strong> WASD + Mouse + Clic</p>
+        <button id="start-btn">🎮 COMENZAR MISIÓN</button>
+    </div>
+    
+    <div id="gameover" class="hidden">
+        <h1> MISIÓN COMPLETADA </h1>
+        <h2>PUNTUACIÓN FINAL: <span id="final-score">0</span></h2>
+        <p id="accuracy-text"></p>
+        <button id="restart-btn">🔄 NUEVA PARTIDA</button>
+    </div>
+
+    <script>
+        
+        // Variables globales
+        let scene, camera, renderer, world;
+        let playerBody, groundBody;
+        let boxes = [];
+        let spheres = [];
+        let keys = {};
+        let canJump = false;
+        let mouseMovementX = 0, mouseMovementY = 0;
+        let yaw = 0, pitch = 0;
+        let isPointerLocked = false;
+        let isFullscreen = false;
+        let platform = null;
+        let platformStartTime = 0;
+        let platformActive = false;  // ← NUEVA variable para activar/desactivar
+        let enemies = []; // Array de enemigos
+        let mixer = null;
+        let animationMixers = []; // Un mixer por cada Kratos
+        
+        // NUEVAS VARIABLES PARA TARGET PRACTICE
+        let targets = [];
+        let score = 0;
+        let timeLeft = 180;
+        let gameActive = false;
+        let gameTimer = null;
+        let shotsFired = 0;
+        let shotsHit = 0;
+        
+        // ==================== IK SYSTEM ====================
+        let ikCharacter = null; // Variable global para el personaje IK
+        
+        // Variables touch
+        let touchStartX = 0, touchStartY = 0;
+        let isTouchingScreen = false;
+        let cameraTouchId = null;
+        
+        // Joystick
+        let joystick = {
+            active: false,
+            touchId: null,
+            centerX: 0,
+            centerY: 0,
+            currentX: 0,
+            currentY: 0,
+            maxRadius: 70,
+            deadZone: 14,
+            inputX: 0,
+            inputY: 0
+        };
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.Fog(0x87CEEB, 0, 80);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.6, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            //crear luces
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            // ✅ CARGAR TEXTURAS PBR
+            const textureLoader = new THREE.TextureLoader();
+
+            const grassBaseColor = textureLoader.load('https://gametechnologymath.github.io/Poliigon_GrassPatchyGround_4585_BaseColor.jpg');
+            const grassNormal = textureLoader.load('https://gametechnologymath.github.io/Poliigon_GrassPatchyGround_4585_Normal.png');
+            const grassAO = textureLoader.load('https://gametechnologymath.github.io/Poliigon_GrassPatchyGround_4585_AmbientOcclusion.jpg');
+
+            // ✅ CONFIGURAR REPETICIÓN (para que no se vea estirado en 80x80m)
+            const repeatCount = 20; // Ajusta según prefieras
+            grassBaseColor.wrapS = grassBaseColor.wrapT = THREE.RepeatWrapping;
+            grassNormal.wrapS = grassNormal.wrapT = THREE.RepeatWrapping;
+            grassAO.wrapS = grassAO.wrapT = THREE.RepeatWrapping;
+
+            grassBaseColor.repeat.set(repeatCount, repeatCount);
+            grassNormal.repeat.set(repeatCount, repeatCount);
+            grassAO.repeat.set(repeatCount, repeatCount);
+
+            // ✅ OPTIMIZAR FILTROS PARA MÓVIL
+            grassBaseColor.anisotropy = 4; // Mejora calidad en ángulo
+            grassNormal.anisotropy = 4;
+            grassAO.anisotropy = 4;
+
+            // 🔥 CREAR SUELO CON TEXTURAS PBR
+            world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+
+            const groundGeometry = new THREE.PlaneGeometry(80, 80);
+
+            // 🎨 USAR MeshStandardMaterial CON TEXTURAS
+            const groundMaterial = new THREE.MeshStandardMaterial({
+                map: grassBaseColor,           // Color base
+                normalMap: grassNormal,        // Relieve/detalle
+                aoMap: grassAO,                // Sombras en grietas
+                aoMapIntensity: 0.5,           // Intensidad de sombras (ajustable)
+                roughness: 0.9,                // Pasto es áspero
+                metalness: 0.0                 // Pasto no es metálico
+            });
+
+            const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.receiveShadow = true;
+
+           // ⚠️ IMPORTANTE: Para que funcione aoMap, necesitas UV2
+            groundGeometry.attributes.uv2 = groundGeometry.attributes.uv;
+            scene.add(groundMesh);
+
+            //FISICAS DEL SUELO
+            const groundShape = new CANNON.Plane();
+            groundBody = new CANNON.Body({ mass: 0 });
+            groundBody.addShape(groundShape);
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+            world.addBody(groundBody);
+
+            const playerShape = new CANNON.Sphere(0.5);
+            playerBody = new CANNON.Body({ mass: 80 });
+            playerBody.addShape(playerShape);
+            playerBody.position.set(0, 1.6, 0);
+            playerBody.linearDamping = 0.9;
+            playerBody.fixedRotation = true;
+            world.addBody(playerBody);
+            
+            //texto en 3d
+            const loader = new THREE.FontLoader();
+            loader.load(
+                'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
+                function (font) {
+                    const palabra = "QUIMICA 3D";
+                    const letras = [];
+                    const group = new THREE.Group();
+
+                    for (let i = 0; i < palabra.length; i++) {
+                        const char = palabra[i];
+                        const geometry = new THREE.TextGeometry(char, {
+                            font: font,
+                            size: 1,
+                            height: 0.3,
+                            curveSegments: 12,
+                            bevelEnabled: true,
+                            bevelThickness: 0.05,
+                            bevelSize: 0.02,
+                            bevelSegments: 5
+                        });
+
+                        geometry.center();
+
+                        const material = new THREE.MeshStandardMaterial({
+                            color: 0x0077ff,
+                            metalness: 0.2,
+                            roughness: 0.3
+                        });
+
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.position.x = i * 1.2;
+                        letras.push(mesh);
+                        group.add(mesh);
+                    }
+
+                    group.position.x = -((palabra.length - 1) * 1.2) / 2;
+                    group.position.y = 0;
+                    
+                    const pivot = new THREE.Group();
+                    pivot.add(group);
+                    pivot.position.set(0, 3, -6);
+                    scene.add(pivot);
+
+                    function animateText(time) {
+                        requestAnimationFrame(animateText);
+                        const t = time * 0.002;
+
+                        letras.forEach((letra, i) => {
+                            letra.position.y = Math.sin(t + i * 0.5) * 0.4;
+                            letra.rotation.y = Math.sin(t + i * 0.3) * 0.2;
+                        });
+
+                        pivot.rotation.y += 0.0008;
+                        renderer.render(scene, camera);
+                    }
+
+                    animateText();
+                }
+            );
+
+            // Cajas azules con física
+            createBox(-5, 1, 2);
+            createBox(5, 1, 4);
+            createBox(0, 1, -8);
+
+            // Crear plataforma móvil
+            createMovingPlatform();
+            // Crear campo de pasto 3D
+            createGrassField();  
+
+            setupControls();
+            updateJoystickCenter();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+// Crear cilindro helper
+function createCylinder(radiusTop, radiusBottom, height, color) {
+    const geo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 16);
+    const mat = new THREE.MeshLambertMaterial({ color });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+    return mesh;
+}
+
+
+// ==================== FIN IK SYSTEM ====================
+
+        // CREAR CAJAS CON FÍSICA
+        function createBox(x, y, z) {
+            const size = 1;
+            const boxGeometry = new THREE.BoxGeometry(size, size, size);
+            const boxMaterial = new THREE.MeshLambertMaterial({ color: 0x0000ff });
+            const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial);
+            boxMesh.castShadow = true;
+            boxMesh.receiveShadow = true;
+            scene.add(boxMesh);
+
+            const boxShape = new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2));
+            const boxBody = new CANNON.Body({ mass: 5 });
+            boxBody.addShape(boxShape);
+            boxBody.position.set(x, y, z);
+            world.addBody(boxBody);
+
+            boxes.push({ mesh: boxMesh, body: boxBody });
+        }
+        // CREAR PLATAFORMA MÓVIL
+        function createMovingPlatform() {
+            const width = 3;
+            const height = 0.3;
+            const depth = 3;
+            
+            // Mesh visual
+            const platformGeometry = new THREE.BoxGeometry(width, height, depth);
+            const platformMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xff6600,
+                emissive: 0x331100
+            });
+            const platformMesh = new THREE.Mesh(platformGeometry, platformMaterial);
+            platformMesh.castShadow = true;
+            platformMesh.receiveShadow = true;
+            platformMesh.position.set(0, 1, 2);
+            scene.add(platformMesh);
+            
+            // Cuerpo físico KINEMATIC (mass: 0 y type: KINEMATIC)
+            const platformShape = new CANNON.Box(new CANNON.Vec3(width / 2, height / 2, depth / 2));
+            const platformBody = new CANNON.Body({ 
+                mass: 0,
+                type: CANNON.Body.KINEMATIC
+            });
+            platformBody.addShape(platformShape);
+            platformBody.position.set(0, 1, 2);
+            world.addBody(platformBody);
+            
+            platform = {
+                mesh: platformMesh,
+                body: platformBody,
+                startY: 1,
+                endY: 3,
+                currentState: 'down',
+                stateStartTime: Date.now()
+            };
+            
+            platformStartTime = Date.now();
+        }
+
+        // Función para crear un Kratos enemigo
+        function spawnKratos(x, y, z) {
+            console.log('🔄 Intentando cargar Kratos...');
+            
+            if (typeof THREE.GLTFLoader === 'undefined') {
+                console.error('❌ GLTFLoader NO está disponible');
+                return;
+            }
+            
+            const loader = new THREE.GLTFLoader();
+            const kratosURL = 'https://gametechnologymath.github.io/kratos.glb';
+            
+            loader.load(
+                kratosURL,
+                (gltf) => {
+                    console.log('✅ Kratos cargado!');
+                    
+                    const kratos = gltf.scene;
+                    kratos.scale.set(1, 1, 1);
+                    kratos.position.set(x, y, z);
+                    scene.add(kratos);
+                    
+                    const mixer = new THREE.AnimationMixer(kratos);
+                    animationMixers.push(mixer);
+                    
+                    const animations = {};
+                    
+                    // ✅ USAR LA ANIMACIÓN ÚNICA CON DIFERENTES VELOCIDADES
+                    if (gltf.animations.length > 0) {
+                        const mainClip = gltf.animations[0];
+                        console.log(`📽️ Usando: ${mainClip.name} (${mainClip.duration}s)`);
+                        
+                        animations.idle = mixer.clipAction(mainClip.clone());
+                        animations.idle.timeScale = 0.8; // MUY lento
+                        
+                        animations.run = mixer.clipAction(mainClip.clone());
+                        animations.run.timeScale = 1.5; // Rápido
+                        
+                        animations.attack = mixer.clipAction(mainClip.clone());
+                        animations.attack.timeScale = 2.0;
+                        
+                        animations.death = mixer.clipAction(mainClip.clone());
+                        animations.death.timeScale = 2.0;
+                        animations.death.setLoop(THREE.LoopOnce);
+                        animations.death.clampWhenFinished = true;
+                    }
+                    
+                    const enemyShape = new CANNON.Sphere(1);
+                    const enemyBody = new CANNON.Body({ 
+                        mass: 80,
+                        fixedRotation: true 
+                    });
+                    enemyBody.addShape(enemyShape);
+                    enemyBody.position.set(x, y, z);
+                    world.addBody(enemyBody);
+                    
+                    const enemy = {
+                        mesh: kratos,
+                        body: enemyBody,
+                        mixer: mixer,
+                        animations: animations,
+                        currentAction: null,
+                        health: 100,
+                        state: 'idle',
+                        attackRange: 3,
+                        chaseRange: 20,
+                        attackCooldown: 0,
+                        damage: 10
+                    };
+                    
+                    enemies.push(enemy);
+                    
+                    if (animations.idle) {
+                        playEnemyAnimation(enemy, 'idle');
+                    }
+                    
+                    console.log('✅ Kratos spawneado, enemigos:', enemies.length);
+                },
+                undefined,
+                (error) => {
+                    console.error('❌ ERROR:', error);
+                }
+            );
+        }
+        // Reproducir animación de enemigo
+        function playEnemyAnimation(enemy, animName, loop = true) {
+            if (!enemy.animations[animName]) {
+                console.warn(`⚠️ Animación "${animName}" no encontrada`);
+                return;
+            }
+            
+            const action = enemy.animations[animName];
+            
+            // Detener animación anterior
+            if (enemy.currentAction && enemy.currentAction !== action) {
+                enemy.currentAction.stop();  // ← Usar stop() en vez de fadeOut()
+            }
+            
+            // ✅ CONFIGURAR Y REPRODUCIR
+            action.reset();
+            action.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce);
+            action.clampWhenFinished = !loop; // Mantener último frame si no hace loop
+            action.enabled = true;
+            action.setEffectiveTimeScale(1.0); // Asegurar que el timeScale esté activo
+            action.setEffectiveWeight(1.0);
+            action.play();
+            
+            enemy.currentAction = action;
+            
+            console.log(`🎬 Reproduciendo: ${animName} (timeScale: ${action.timeScale})`);
+        }
+
+        // Actualizar enemigos cada frame
+        function updateEnemies(deltaTime) {
+            enemies.forEach(enemy => {
+                if (enemy.health <= 0) {
+                    if (enemy.state !== 'dead') {
+                        enemy.state = 'dead';
+                        playEnemyAnimation(enemy, 'death', false);
+                        
+                        // Eliminar después de 3 segundos
+                        setTimeout(() => {
+                            scene.remove(enemy.mesh);
+                            world.removeBody(enemy.body);
+                            enemies = enemies.filter(e => e !== enemy);
+                        }, 3000);
+                    }
+                    return;
+                }
+                
+                // Actualizar mixer de animación
+                enemy.mixer.update(deltaTime);
+                
+                // Calcular distancia al jugador
+                const dx = playerBody.position.x - enemy.body.position.x;
+                const dz = playerBody.position.z - enemy.body.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                
+                
+                // COMPORTAMIENTO SEGÚN DISTANCIA
+                if (distance < enemy.attackRange) {
+                    // ⚔️ ATACAR
+                    if (enemy.state !== 'attacking') {
+                        enemy.state = 'attacking';
+                        playEnemyAnimation(enemy, 'attack', false);
+                        console.log('⚔️ Estado: ATTACK');
+                    }
+                    
+                    enemy.body.velocity.x = 0;
+                    enemy.body.velocity.z = 0;
+                    
+                    // Dar daño cada 2 segundos
+                    enemy.attackCooldown -= deltaTime;
+                    if (enemy.attackCooldown <= 0) {
+                        console.log('💥 Kratos te atacó! -' + enemy.damage + ' HP');
+                        enemy.attackCooldown = 2;
+                    }
+                    
+                } else if (distance < enemy.chaseRange) {
+                    // 🏃 PERSEGUIR
+                    if (enemy.state !== 'chasing') {
+                        enemy.state = 'chasing';
+                        playEnemyAnimation(enemy, 'run');
+                        console.log('🏃 Estado: RUN');
+                    }
+                    
+                    // Moverse hacia el jugador
+                    const speed = 3;
+                    const dirX = dx / distance;
+                    const dirZ = dz / distance;
+                    
+                    enemy.body.velocity.x = dirX * speed;
+                    enemy.body.velocity.z = dirZ * speed;
+                    
+                    // Rotar hacia el jugador
+                    const angle = Math.atan2(dx, dz);
+                    enemy.mesh.rotation.y = angle;
+                    
+                } else {
+                    // 🧍 IDLE
+                    if (enemy.state !== 'idle') {
+                        enemy.state = 'idle';
+                        playEnemyAnimation(enemy, 'idle');
+                        console.log('🧍 Estado: IDLE');
+                    }
+                    
+                    enemy.body.velocity.x = 0;
+                    enemy.body.velocity.z = 0;
+                }
+                
+                // Sincronizar mesh con física
+                enemy.mesh.position.copy(enemy.body.position);
+                enemy.mesh.position.y -= 1; // Ajuste para que los pies toquen el suelo
+            });
+        }
+    // ✅ AGREGAR TODA ESTA FUNCIÓN AQUÍ:
+    // CREAR CAMPO DE PASTO 3D CON INSTANCED MESH
+    function createGrassField() {
+         // ✅ CARGAR TEXTURA PNG
+        const textureLoader = new THREE.TextureLoader();
+        const grassTexture = textureLoader.load('https://gametechnologymath.github.io/gras-A1-.png');
+        
+        // ✅ Configurar textura
+        grassTexture.magFilter = THREE.LinearFilter;
+        grassTexture.minFilter = THREE.LinearMipmapLinearFilter;
+        
+        // Geometría de una brizna (MÁS PEQUEÑA)
+        const bladeGeometry = new THREE.PlaneGeometry(0.2, 0.25);
+        
+        // ✅ Material CON TEXTURA y TRANSPARENCIA
+        const grassMaterial = new THREE.MeshLambertMaterial({
+            map: grassTexture,              // ← Usar textura
+            transparent: true,               // ← Activar transparencia
+            alphaTest: 0.5,                 // ← Cortar píxeles casi transparentes
+            side: THREE.DoubleSide,
+            depthWrite: true
         });
-        currentFileName = "sin-nombre.html";
-        updateProjectName();
-        showNotification('📄 Nuevo proyecto creado', 'success');
-        runButton.click();
-      }
-    });
+        
+        // Crear 3000 briznas instanciadas
+        const grassCount = 20000;
+        const instancedGrass = new THREE.InstancedMesh(
+            bladeGeometry, 
+            grassMaterial, 
+            grassCount
+        );
+        
+        instancedGrass.castShadow = true;
+        instancedGrass.receiveShadow = true;
+        
+        const dummy = new THREE.Object3D();
+        const dummy2 = new THREE.Object3D();
 
-    // ==================== COPIAR CÓDIGO ====================
-    document.getElementById('copy-btn').addEventListener('click', async () => {
-      const codigo = editor.state.doc.toString();
-      try {
-        await navigator.clipboard.writeText(codigo);
-        showNotification('📋 Código copiado al portapapeles', 'success');
-      } catch (err) {
-        showNotification('❌ Error al copiar', 'error');
-      }
-    });
+        // 🔥 REDUCIR ÁREA (de 70x70 a 50x50 o menos)
+        const fieldSize = 50;  // ← Ajusta según tu necesidad
 
-    // ==================== LIMPIAR AUTO-GUARDADO ====================
-    document.getElementById('clear-autosave-btn').addEventListener('click', () => {
-      if (confirm('¿Eliminar el auto-guardado? Esta acción no se puede deshacer.')) {
-        localStorage.removeItem(AUTOSAVE_KEY);
-        localStorage.removeItem(AUTOSAVE_NAME_KEY);
-        showNotification('🗑️ Auto-guardado eliminado', 'success');
-      }
-    });
+        // Colocar briznas aleatoriamente
+        for (let i = 0; i < grassCount / 2; i++) {
+            const x = (Math.random() - 0.5) * 70;
+            const z = (Math.random() - 0.5) * 70;
+            
+            // Primera brizna
+            dummy.position.set(x, 0.12, z);
+            dummy.rotation.y = Math.random() * Math.PI;
+            dummy.scale.set(
+                0.8 + Math.random() * 0.6,
+                0.8 + Math.random() * 0.6,
+                1
+            );
+            dummy.updateMatrix();
+            instancedGrass.setMatrixAt(i * 2, dummy.matrix);
+            
+            // Segunda brizna cruzada
+            dummy2.position.set(x, 0.12, z);
+            dummy2.rotation.y = (Math.random() * Math.PI) + Math.PI / 2;
+            dummy2.scale.set(
+                0.8 + Math.random() * 0.6,
+                0.8 + Math.random() * 0.6,
+                1
+            );
+            dummy2.updateMatrix();
+            instancedGrass.setMatrixAt(i * 2 + 1, dummy2.matrix);
+        }
+        
+        
+        
+        scene.add(instancedGrass);
+        
+        console.log(`✅ Pasto creado: ${grassCount} briznas`);
+    }
+            
+        // ACTUALIZAR POSICIÓN DE LA PLATAFORMA
+        // ACTUALIZAR POSICIÓN DE LA PLATAFORMA
+        function updatePlatform() {
+            if (!platform) return;
+            
+            // Determinar altura objetivo según el estado
+            const targetY = platformActive ? platform.endY : platform.startY;
+            
+            // Interpolación suave y rápida
+            const lerpSpeed = 0.15; // Más rápido (era 0.05)
+            const currentY = platform.body.position.y;
+            const newY = currentY + (targetY - currentY) * lerpSpeed;
+            
+            platform.body.position.y = newY;
+            platform.body.velocity.y = 0;
+            
+            platform.mesh.position.copy(platform.body.position);
+            platform.mesh.quaternion.copy(platform.body.quaternion);
+        }
 
-    // ==================== ATAJOS DE TECLADO ====================
-    document.addEventListener('keydown', (e) => {
-      // Ctrl+Enter: Ejecutar
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        runButton.click();
-      }
-      
-      // Ctrl+S: Guardar
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        document.getElementById('save-btn').click();
-      }
-      
-      // Ctrl+O: Abrir
-      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
-        e.preventDefault();
-        document.getElementById('open-btn').click();
-      }
-    });
+        // ACTIVAR/DESACTIVAR PLATAFORMA
+        function togglePlatform() {
+            platformActive = !platformActive;
+            
+            if (platformActive) {
+                console.log('✅ Plataforma ACTIVADA');
+                platform.stateStartTime = Date.now(); // Reiniciar timer
+            } else {
+                console.log('❌ Plataforma DESACTIVADA');
+            }
+        }
 
-    // ==================== AUTO-EJECUTAR AL CARGAR ====================
-    setTimeout(() => {
-      editor.focus();
-      runButton.click();
-    }, 100);
 
-    console.log('✅ LuisTech IDE B13 cargado');
-    console.log('💾 Auto-guardado: ACTIVO');
-    console.log('⌨️  Atajos: Ctrl+S (guardar), Ctrl+O (abrir), Ctrl+Enter (ejecutar)');
-  </script>
+
+        // CREAR OBJETIVOS
+        function spawnTarget() {
+            if (!gameActive) return;
+            
+            const x = (Math.random() - 0.5) * 30;
+            const y = 2 + Math.random() * 4;
+            const z = -5 - Math.random() * 20;
+            
+            const geo = new THREE.SphereGeometry(0.6, 32, 32);
+            const mat = new THREE.MeshLambertMaterial({ 
+                color: 0xff0000,
+                emissive: 0x330000
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            scene.add(mesh);
+            
+            targets.push({
+                mesh: mesh,
+                startTime: Date.now(),
+                startPos: { x, y, z },
+                moveSpeed: 0.5 + Math.random() * 0.5,
+                movePattern: Math.floor(Math.random() * 3),
+                hit: false
+            });
+        }
+
+        // ACTUALIZAR MOVIMIENTO DE OBJETIVOS
+        function updateTargets() {
+            const currentTime = Date.now();
+            
+            targets.forEach(target => {
+                const elapsed = (currentTime - target.startTime) * 0.001;
+                
+                switch(target.movePattern) {
+                    case 0:
+                        target.mesh.position.x = target.startPos.x + Math.sin(elapsed * target.moveSpeed) * 3;
+                        break;
+                    case 1:
+                        target.mesh.position.y = target.startPos.y + Math.sin(elapsed * target.moveSpeed) * 2;
+                        break;
+                    case 2:
+                        target.mesh.position.x = target.startPos.x + Math.sin(elapsed * target.moveSpeed) * 3;
+                        target.mesh.position.y = target.startPos.y + Math.cos(elapsed * target.moveSpeed) * 2;
+                        break;
+                }
+                
+                target.mesh.rotation.y += 0.02;
+            });
+        }
+
+        
+        // DETECTAR COLISIÓN BALA-OBJETIVO
+        function checkBulletCollisions() {
+            spheres.forEach(bullet => {
+                // Colisión con targets
+                targets.forEach((target, index) => {
+                    if (target.hit) return;
+                    
+                    const distance = bullet.mesh.position.distanceTo(target.mesh.position);
+                    
+                    if (distance < 0.8) {
+                        target.hit = true;
+                        target.mesh.material.color.setHex(0x00ff00);
+                        
+                        setTimeout(() => {
+                            scene.remove(target.mesh);
+                            targets.splice(index, 1);
+                        }, 100);
+                        
+                        score += 10;
+                        shotsHit++;
+                        updateHUD();
+                        
+                        setTimeout(() => spawnTarget(), 1000);
+                    }
+                });
+                
+                // ✅ Colisión con enemigos (DENTRO del spheres.forEach)
+                enemies.forEach(enemy => {
+                    if (enemy.health <= 0) return;
+                    
+                    const distance = bullet.mesh.position.distanceTo(enemy.body.position);
+                    
+                    if (distance < 1) {
+                        enemy.health -= 25;
+                        
+                        // Efecto visual de impacto
+                        enemy.mesh.traverse((child) => {
+                            if (child.isMesh && child.material) {
+                                const originalColor = child.material.color.clone();
+                                child.material.color.setHex(0xff0000);
+                                setTimeout(() => {
+                                    child.material.color.copy(originalColor);
+                                }, 100);
+                            }
+                        });
+                        
+                        // Empuje
+                        const pushX = (enemy.body.position.x - bullet.body.position.x) * 5;
+                        const pushZ = (enemy.body.position.z - bullet.body.position.z) * 5;
+                        enemy.body.velocity.x += pushX;
+                        enemy.body.velocity.z += pushZ;
+                        
+                        console.log('🎯 Hit! Kratos HP:', enemy.health);
+                        
+                        if (enemy.health <= 0) {
+                            score += 50;
+                            shotsHit++;
+                            updateHUD();
+                        }
+                    }
+                });
+            }); // ← Cierre del spheres.forEach (solo UNO)
+        }
+
+                // INICIAR JUEGO
+                function startGameLogic() {
+                    gameActive = true;
+                    score = 0;
+                    timeLeft = 180;
+                    shotsFired = 0;
+                    shotsHit = 0;
+                    // ✅ Crear personaje IK
+                    ikCharacter = createIKCharacter(5, 1, -10);
+
+                    targets.forEach(t => scene.remove(t.mesh));
+                    targets = [];
+                // ✅ Mostrar mensaje de carga
+                    const loadingMsg = document.createElement('div');
+                    loadingMsg.id = 'loading-msg';
+                    loadingMsg.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0,0,0,0.9);
+                        color: white;
+                        padding: 20px 40px;
+                        border-radius: 10px;
+                        font-size: 24px;
+                        z-index: 9999;
+                    `;
+                    loadingMsg.textContent = '⏳ Cargando enemigos...';
+                    document.body.appendChild(loadingMsg);
+                    
+                    // Ocultar después de 5 segundos
+                    setTimeout(() => {
+                        if (document.getElementById('loading-msg')) {
+                            document.getElementById('loading-msg').remove();
+                        }
+                    }, 5000);
+                    
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => spawnTarget(), i * 500);
+                    }
+                    
+                  gameTimer = setInterval(() => {
+                        timeLeft--;
+                        updateHUD();
+                        if (timeLeft <= 0) endGame();
+                    }, 1000);
+                    
+                    updateHUD();
+                    // ✅ AGREGAR ENEMIGOS AL FINAL:
+                    setTimeout(() => {
+                        spawnKratos(-10, 0.5, -10);
+                        spawnKratos(10, 0.5, -15);
+                        spawnKratos(0, 0.5, -20);
+                    }, 2000);
+                }
+
+        // TERMINAR JUEGO
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+            
+            const accuracy = shotsFired > 0 ? ((shotsHit / shotsFired) * 100).toFixed(1) : 0;
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('accuracy-text').textContent = 
+                `Disparos: ${shotsFired} | Aciertos: ${shotsHit} | Precisión: ${accuracy}%`;
+            document.getElementById('gameover').classList.remove('hidden');
+            
+            targets.forEach(t => scene.remove(t.mesh));
+            targets = [];
+        }
+
+        // ACTUALIZAR HUD
+        function updateHUD() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('timer').textContent = `TIEMPO: ${timeLeft}s`;
+        }
+
+        // RESTART
+        function restartGame() {
+            document.getElementById('gameover').classList.add('hidden');
+            startGameLogic();
+        }
+
+        function setupControls() {
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+            document.addEventListener('mousemove', onMouseMove);
+            
+            setupJoystick();
+            
+            const canvas = renderer.domElement;
+            canvas.addEventListener('touchstart', (e) => {
+                for (let i = 0; i < e.touches.length; i++) {
+                    const touch = e.touches[i];
+                    
+                    if (touch.clientX > window.innerWidth / 2 && !isTouchingScreen) {
+                        isTouchingScreen = true;
+                        cameraTouchId = touch.identifier;
+                        touchStartX = touch.clientX;
+                        touchStartY = touch.clientY;
+                        break;
+                    }
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (isTouchingScreen) {
+                    e.preventDefault();
+                    
+                    for (let i = 0; i < e.touches.length; i++) {
+                        const touch = e.touches[i];
+                        
+                        if (touch.identifier === cameraTouchId) {
+                            const deltaX = touch.clientX - touchStartX;
+                            const deltaY = touch.clientY - touchStartY;
+                            
+                            yaw -= deltaX * 0.005;
+                            pitch -= deltaY * 0.005;
+                            pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+                            
+                            touchStartX = touch.clientX;
+                            touchStartY = touch.clientY;
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            canvas.addEventListener('touchend', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    
+                    if (touch.identifier === cameraTouchId) {
+                        isTouchingScreen = false;
+                        cameraTouchId = null;
+                        break;
+                    }
+                }
+            });
+            
+            document.getElementById('btn-jump').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                jump();
+            });
+            
+            document.getElementById('btn-shoot').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                onShoot();
+            });
+            // ← AGREGAR ESTO AQUÍ:
+            document.getElementById('btn-platform').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                togglePlatform();
+            });
+            
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+            document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+            
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        }
+        
+        function setupJoystick() {
+            const joystickContainer = document.querySelector('.joystick-container');
+            const joystickStick = document.getElementById('joystick-stick');
+            
+            joystickContainer.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const touch = e.changedTouches[0];
+                joystick.active = true;
+                joystick.touchId = touch.identifier;
+                joystickStick.classList.add('active');
+                updateJoystickCenter();
+                handleJoystickMove(touch);
+            }, { passive: false });
+            
+            joystickContainer.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (joystick.active) {
+                    for (let i = 0; i < e.changedTouches.length; i++) {
+                        const touch = e.changedTouches[i];
+                        if (touch.identifier === joystick.touchId) {
+                            handleJoystickMove(touch);
+                            break;
+                        }
+                    }
+                }
+            }, { passive: false });
+            
+            joystickContainer.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.identifier === joystick.touchId) {
+                        resetJoystick();
+                        break;
+                    }
+                }
+            }, { passive: false });
+            
+            joystickContainer.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                resetJoystick();
+            }, { passive: false });
+            
+            joystickContainer.addEventListener('mousedown', (e) => {
+                joystick.active = true;
+                joystickStick.classList.add('active');
+                handleJoystickMove(e);
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (joystick.active) {
+                    handleJoystickMove(e);
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (joystick.active) {
+                    resetJoystick();
+                }
+            });
+        }
+        
+        function updateJoystickCenter() {
+            const joystickContainer = document.querySelector('.joystick-container');
+            const rect = joystickContainer.getBoundingClientRect();
+            joystick.centerX = rect.left + rect.width / 2;
+            joystick.centerY = rect.top + rect.height / 2;
+        }
+        
+        function handleJoystickMove(input) {
+            const clientX = input.clientX !== undefined ? input.clientX : input.pageX;
+            const clientY = input.clientY !== undefined ? input.clientY : input.pageY;
+            
+            let deltaX = clientX - joystick.centerX;
+            let deltaY = clientY - joystick.centerY;
+            
+            let distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            if (distance > joystick.maxRadius) {
+                const angle = Math.atan2(deltaY, deltaX);
+                deltaX = Math.cos(angle) * joystick.maxRadius;
+                deltaY = Math.sin(angle) * joystick.maxRadius;
+                distance = joystick.maxRadius;
+            }
+            
+            joystick.currentX = deltaX;
+            joystick.currentY = deltaY;
+            
+            if (distance < joystick.deadZone) {
+                joystick.inputX = 0;
+                joystick.inputY = 0;
+            } else {
+                const effectiveDistance = distance - joystick.deadZone;
+                const effectiveMaxRadius = joystick.maxRadius - joystick.deadZone;
+                const normalizedDistance = Math.min(effectiveDistance / effectiveMaxRadius, 1);
+                
+                const angle = Math.atan2(deltaY, deltaX);
+                joystick.inputX = Math.cos(angle) * normalizedDistance;
+                joystick.inputY = Math.sin(angle) * normalizedDistance;
+            }
+            
+            const stick = document.getElementById('joystick-stick');
+            stick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+            
+            updateDebug();
+        }
+        
+        function resetJoystick() {
+            joystick.active = false;
+            joystick.touchId = null;
+            joystick.currentX = 0;
+            joystick.currentY = 0;
+            joystick.inputX = 0;
+            joystick.inputY = 0;
+            
+            const stick = document.getElementById('joystick-stick');
+            stick.style.transform = 'translate(-50%, -50%)';
+            stick.classList.remove('active');
+            
+            updateDebug();
+        }
+        
+        function updateDebug() {
+            const debug = document.getElementById('debug');
+            debug.innerHTML = `
+                Verificando controles<br>
+                Joy: ${joystick.active ? 'ON' : 'OFF'}<br>
+                X: ${joystick.inputX.toFixed(2)}<br>
+                Y: ${joystick.inputY.toFixed(2)}<br>
+                Pos: ${playerBody.position.x.toFixed(1)}, ${playerBody.position.z.toFixed(1)}<br>
+                Targets: ${targets.length}<br>
+                Balas: ${spheres.length}
+            `;
+        }
+
+        function startGame() {
+            document.getElementById('instructions').classList.add('hidden');
+            renderer.domElement.requestPointerLock = renderer.domElement.requestPointerLock ||
+                                                      renderer.domElement.mozRequestPointerLock ||
+                                                      renderer.domElement.webkitRequestPointerLock;
+            renderer.domElement.requestPointerLock();
+
+            document.addEventListener('pointerlockchange', onPointerLockChange);
+            document.addEventListener('mozpointerlockchange', onPointerLockChange);
+            document.addEventListener('webkitpointerlockchange', onPointerLockChange);
+            
+            renderer.domElement.addEventListener('click', onShoot);
+            
+            startGameLogic();
+        }
+
+        function onPointerLockChange() {
+            isPointerLocked = document.pointerLockElement === renderer.domElement ||
+                             document.mozPointerLockElement === renderer.domElement ||
+                             document.webkitPointerLockElement === renderer.domElement;
+        }
+
+        function onMouseMove(e) {
+            if (!isPointerLocked) return;
+            
+            mouseMovementX = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+            mouseMovementY = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+
+            yaw -= mouseMovementX * 0.002;
+            pitch -= mouseMovementY * 0.002;
+            pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+        }
+
+        function onShoot() {
+            shotsFired++;
+            
+            const sphereGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00 });
+            const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphereMesh.castShadow = true;
+            scene.add(sphereMesh);
+
+            const sphereShape = new CANNON.Sphere(0.2);
+            const sphereBody = new CANNON.Body({ mass: 1 });
+            sphereBody.addShape(sphereShape);
+            sphereBody.position.copy(playerBody.position);
+            
+            const shootDirection = new THREE.Vector3(0, 0, -1);
+            shootDirection.applyQuaternion(camera.quaternion);
+            const force = 30;
+            sphereBody.velocity.set(
+                shootDirection.x * force,
+                shootDirection.y * force,
+                shootDirection.z * force
+            );
+            
+            world.addBody(sphereBody);
+            spheres.push({ mesh: sphereMesh, body: sphereBody, time: Date.now() });
+        }
+        
+        function jump() {
+            if (canJump) {
+                playerBody.velocity.y = 6;
+                canJump = false;
+            }
+        }
+
+        function onKeyDown(e) {
+            keys[e.code] = true;
+            if (e.code === 'Space' && isPointerLocked) {
+                e.preventDefault();
+                jump();
+            }
+            
+        }
+
+        function onKeyUp(e) {
+            keys[e.code] = false;
+        }
+
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                const elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function onFullscreenChange() {
+            isFullscreen = !!(document.fullscreenElement || 
+                             document.mozFullScreenElement || 
+                             document.webkitFullscreenElement || 
+                             document.msFullscreenElement);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateJoystickCenter();
+        }
+
+        function updatePlayer(deltaTime) {
+            const speed = 5;
+            const direction = new THREE.Vector3();
+            
+            if (keys['KeyW']) direction.z -= 1;
+            if (keys['KeyS']) direction.z += 1;
+            if (keys['KeyA']) direction.x -= 1;
+            if (keys['KeyD']) direction.x += 1;
+            //  AGREGAR DETECCIÓN DE E AQUÍ
+            if (keys['KeyE']) {
+                togglePlatform();
+                keys['KeyE'] = false;  // ← Evitar que se active múltiples veces
+            }
+
+            direction.x += joystick.inputX;
+            direction.z += joystick.inputY;
+
+            if (direction.length() > 0) {
+                direction.normalize();
+                direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                playerBody.velocity.x = direction.x * speed;
+                playerBody.velocity.z = direction.z * speed;
+            } else {
+                playerBody.velocity.x *= 0.9;
+                playerBody.velocity.z *= 0.9;
+            }
+
+            const contactNormal = new CANNON.Vec3();
+            const upAxis = new CANNON.Vec3(0, 1, 0);
+            canJump = false;
+            
+            playerBody.world.contacts.forEach(contact => {
+                if (contact.bi === playerBody || contact.bj === playerBody) {
+                    if (contact.bi === playerBody) {
+                        contact.ni.negate(contactNormal);
+                    } else {
+                        contactNormal.copy(contact.ni);
+                    }
+                    if (contactNormal.dot(upAxis) > 0.5) {
+                        canJump = true;
+                    }
+                }
+            });
+
+            camera.position.copy(playerBody.position);
+            camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const deltaTime = 1 / 60;
+            world.step(deltaTime);
+
+            updatePlayer(deltaTime);
+            updatePlatform();        // ← ✅ AGREGAR ESTA LÍNEA
+            updateTargets();
+            updateEnemies(deltaTime); // ← ✅ AGREGAR ESTA LÍNEA
+            checkBulletCollisions();
+
+            boxes.forEach(box => {
+                box.mesh.position.copy(box.body.position);
+                box.mesh.quaternion.copy(box.body.quaternion);
+            });
+
+            spheres = spheres.filter(sphere => {
+                sphere.mesh.position.copy(sphere.body.position);
+                sphere.mesh.quaternion.copy(sphere.body.quaternion);
+                
+                if (Date.now() - sphere.time > 5000 || sphere.body.position.y < -10) {
+                    scene.remove(sphere.mesh);
+                    world.removeBody(sphere.body);
+                    return false;
+                }
+                return true;
+            });
+            if (ikCharacter) {
+                updateCharacterIK(ikCharacter, deltaTime);
+            }
+
+            updateDebug();
+            renderer.render(scene, camera);
+        }
+
+        init();
+        animate();
+    </script>
 </body>
 </html>
